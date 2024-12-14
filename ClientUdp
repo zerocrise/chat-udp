@@ -1,0 +1,71 @@
+
+package clientudp;
+// Importazione delle librerie necessarie per la gestione delle reti e dell'input
+import java.net.*;  // Per le funzionalità di rete (socket, indirizzi)
+import java.util.Scanner;  // Per leggere l'input dell'utente da console
+public class ClientUdp {
+public static void main(String[] args) {
+        //parametri che identificano il server
+         int SERVER_PORT = 11234;
+         InetAddress serverAddress=null;
+        try {
+             // Risoluzione dell'indirizzo del server (in questo caso localhost)
+            serverAddress = InetAddress.getByName("localhost");
+        } catch (UnknownHostException ex) {
+        System.out.println("indirizzo non trovato");
+        }
+        /*Meccanismo di invio:
+
+            Legge i messaggi dall'input dell'utente
+            Converte i messaggi in byte
+            Invia i pacchetti al server specificato */
+        // Creazione di uno scanner per leggere l'input dell'utente
+        Scanner scanner = new Scanner(System.in);
+
+        // Utilizzo di try-catch per gestire ale eccezioni
+        try  {
+            //creazione del socket
+            DatagramSocket socket = new DatagramSocket();
+
+            // Creazione e avvio di un thread separato per la ricezione dei messaggi
+            new Ricevi(socket).start();
+           
+
+            // Inizio dell'invio messaggi
+            System.out.println("Chat avviata. Scrivi un messaggio:");
+
+            // Ciclo per l'invio continuo di messaggi
+            while (true) {
+                // Lettura del messaggio dall'input dell'utente
+                String message = scanner.nextLine();
+
+                // Conversione del messaggio in byte
+                byte[] buffer = message.getBytes();
+
+                // Creazione di un pacchetto UDP per inviare il messaggio
+                DatagramPacket packet = new DatagramPacket(buffer,
+                        buffer.length, 
+                        serverAddress, SERVER_PORT);
+                
+                // Invio del pacchetto
+                socket.send(packet);
+
+                // Controllo per uscire dalla chat
+                if (message.equalsIgnoreCase("exit")) {
+                    System.out.println("Disconnessione...");
+                    break;
+                }
+            }
+
+            // Chiusura del socket (anche se non strettamente necessario con try-with-resources)
+            socket.close();
+
+        } catch (Exception e) {
+            // Gestione di eventuali eccezioni durante l'esecuzione
+            e.printStackTrace();
+        }
+
+        // Chiusura dello scanner
+        scanner.close();
+    }
+}
